@@ -154,7 +154,7 @@ runs:
         STACK_NAME="${{ inputs.stack-name }}"
         REGION="${{ inputs.region }}"
         STACK_STATUS="${{ steps.stack-info.outputs.stack-status }}"
-        STACK_OUTPUTS="${{ steps.stack-info.outputs.stack-outputs }}"
+        STACK_OUTPUTS='${{ steps.stack-info.outputs.stack-outputs }}'
 
         echo "## 📊 CloudFormation Stack Deployment Successful" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -173,5 +173,5 @@ runs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Output Key | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|------------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "${STACK_OUTPUTS}" | jq -r '.[] | "| \(.OutputKey) | \(.OutputValue) |"' >> $GITHUB_STEP_SUMMARY
+          printf '%s\n' "${STACK_OUTPUTS}" | jq -r '.[] | "| \(.OutputKey) | \(.OutputValue) |"' >> $GITHUB_STEP_SUMMARY
         fi
