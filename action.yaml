@@ -1,44 +1,177 @@
-name: 'Action Name'
-description: 'Action Description'
+name: 'CloudFormation Deploy Stack'
+description: 'Deploy or update an AWS CloudFormation stack using a template URL'
 
 inputs:
-  input-1:
-    description: Input description.
-    required: false
-    default: default-value
-  input-2:
-    description: Input description.
-    required: false
-    default: default-value
-  input-3:
-    description: Input description.
-    required: false
-    default: default-value
-  github-token:
-    description: 'GitHub token'
+  stack-name:
+    description: 'Name of the CloudFormation stack'
     required: true
+  region:
+    description: 'AWS region'
+    required: true
+  template-url:
+    description: 'URL of the CloudFormation template'
+    required: true
+  parameters-file:
+    description: 'Path to parameters JSON file (optional)'
+    required: false
+    default: 'infra/parameters.json'
+  aws-account-id:
+    description: 'AWS account ID for OIDC role assumption'
+    required: true
+  oidc-role-name:
+    description: 'Name of the OIDC role to assume'
+    required: true
+
+outputs:
+  operation:
+    description: 'Type of operation performed (CREATE or UPDATE)'
+    value: ${{ steps.deploy.outputs.operation }}
+  stack-status:
+    description: 'Current status of the CloudFormation stack'
+    value: ${{ steps.stack-info.outputs.stack-status }}
+  stack-outputs:
+    description: 'JSON outputs from the CloudFormation stack'
+    value: ${{ steps.stack-info.outputs.stack-outputs }}
 
 runs:
   using: 'composite'
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@v7
+    - name: Configure AWS credentials via OIDC
+      uses: aws-actions/configure-aws-credentials@v6.2.4
       with:
-        python-version: 3.x
+        role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ inputs.oidc-role-name }}
+        aws-region: ${{ inputs.region }}
 
-    - name: Sample step to call GitHub API
+    - name: Deploy CloudFormation stack
+      id: deploy
       shell: bash
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        ISSUE_NUMBER="${{ github.event.issue.number }}"
-        REPO="${{ github.repository }}"
-        OWNER=$(echo $REPO | cut -d'/' -f1)
-        BRANCH_NAME="${{ steps.create-branch.outputs.branch-name }}"
-        COMMENT_BODY="Branch [$BRANCH_NAME](https://github.com/$OWNER/$REPO/tree/$BRANCH_NAME) created 🚀"
+        TEMPLATE_URL="${{ inputs.template-url }}"
+        STACK_NAME="${{ inputs.stack-name }}"
+        REGION="${{ inputs.region }}"
+        PARAMETERS_FILE="${{ inputs.parameters-file }}"
 
-        curl -s -X POST \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d "{\"body\": \"$COMMENT_BODY\"}" \
-          https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments
+        echo ""
+        echo "Stack name: ${STACK_NAME}"
+        echo "Region: ${REGION}"
+
+        # Check if stack exists
+        STACK_EXISTS=$(aws cloudformation describe-stacks --stack-name "${STACK_NAME}" --region "${REGION}" 2>&1 || echo "")
+
+        if echo "$STACK_EXISTS" | grep -q "does not exist"; then
+          echo "Creating new stack..."
+          if [ -f "${PARAMETERS_FILE}" ] && [ -s "${PARAMETERS_FILE}" ] && [ "$(cat ${PARAMETERS_FILE})" != "{}" ]; then
+            aws cloudformation create-stack \
+              --template-url "${TEMPLATE_URL}" \
+              --stack-name "${STACK_NAME}" \
+              --region "${REGION}" \
+              --parameters file://./${PARAMETERS_FILE} \
+              --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+          else
+            aws cloudformation create-stack \
+              --template-url "${TEMPLATE_URL}" \
+              --stack-name "${STACK_NAME}" \
+              --region "${REGION}" \
+              --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+          fi
+          OPERATION="CREATE"
+        else
+          echo "Updating existing stack..."
+          if [ -f "${PARAMETERS_FILE}" ] && [ -s "${PARAMETERS_FILE}" ] && [ "$(cat ${PARAMETERS_FILE})" != "{}" ]; then
+            aws cloudformation update-stack \
+              --template-url "${TEMPLATE_URL}" \
+              --stack-name "${STACK_NAME}" \
+              --region "${REGION}" \
+              --parameters file://./${PARAMETERS_FILE} \
+              --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND || true
+          else
+            aws cloudformation update-stack \
+              --template-url "${TEMPLATE_URL}" \
+              --stack-name "${STACK_NAME}" \
+              --region "${REGION}" \
+              --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND || true
+          fi
+          OPERATION="UPDATE"
+        fi
+
+        echo "operation=${OPERATION}" >> $GITHUB_OUTPUT
+        echo "Stack deployment initiated"
+
+    - name: Wait for stack deployment to complete
+      shell: bash
+      run: |
+        STACK_NAME="${{ inputs.stack-name }}"
+        REGION="${{ inputs.region }}"
+        OPERATION="${{ steps.deploy.outputs.operation }}"
+
+        echo "Waiting for stack deployment to complete..."
+
+        # Check current stack status
+        STATUS=$(aws cloudformation describe-stacks --stack-name "${STACK_NAME}" --region "${REGION}" --query 'Stacks[0].StackStatus' --output text)
+        echo "Current stack status: ${STATUS}"
+
+        if [ "${OPERATION}" = "CREATE" ]; then
+          if [ "${STATUS}" = "CREATE_IN_PROGRESS" ]; then
+            echo "Waiting for stack creation to complete..."
+            aws cloudformation wait stack-create-complete --stack-name "${STACK_NAME}" --region "${REGION}"
+          fi
+          echo "✅ Stack creation completed successfully"
+        else
+          if [[ "${STATUS}" =~ "UPDATE_IN_PROGRESS" ]]; then
+            echo "Waiting for stack update to complete..."
+            aws cloudformation wait stack-update-complete --stack-name "${STACK_NAME}" --region "${REGION}"
+          elif [[ "${STATUS}" =~ "UPDATE_COMPLETE" ]]; then
+            echo "Stack update already completed"
+          elif [ "${STATUS}" = "CREATE_COMPLETE" ]; then
+            echo "Stack is already in CREATE_COMPLETE state (no changes needed)"
+          else
+            echo "Stack status is: ${STATUS}"
+          fi
+          echo "✅ Stack update completed successfully"
+        fi
+
+    - name: Capture stack information
+      id: stack-info
+      shell: bash
+      run: |
+        STACK_NAME="${{ inputs.stack-name }}"
+        REGION="${{ inputs.region }}"
+
+        STACK_INFO=$(aws cloudformation describe-stacks --stack-name "${STACK_NAME}" --region "${REGION}" --query 'Stacks[0]' --output json)
+        STACK_STATUS=$(echo $STACK_INFO | jq -r '.StackStatus')
+        echo "stack-status=${STACK_STATUS}" >> $GITHUB_OUTPUT
+
+        OUTPUTS=$(echo $STACK_INFO | jq '.Outputs // empty')
+        if [ -z "$OUTPUTS" ] || [ "$OUTPUTS" = "null" ]; then
+          echo "stack-outputs={}" >> $GITHUB_OUTPUT
+        else
+          echo "stack-outputs=$(echo $OUTPUTS | jq -c .)" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Display stack information
+      shell: bash
+      run: |
+        STACK_NAME="${{ inputs.stack-name }}"
+        REGION="${{ inputs.region }}"
+        STACK_STATUS="${{ steps.stack-info.outputs.stack-status }}"
+        STACK_OUTPUTS='${{ steps.stack-info.outputs.stack-outputs }}'
+
+        echo "## 📊 CloudFormation Stack Deployment Successful" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Stack Name:** \`${STACK_NAME}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Region:** \`${REGION}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Stack Status:** \`${STACK_STATUS}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ "${STACK_OUTPUTS}" = "{}" ] || [ -z "${STACK_OUTPUTS}" ]; then
+          echo "### Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "No outputs defined in this stack." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Output Key | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|-------|" >> $GITHUB_STEP_SUMMARY
+          printf '%s\n' "${STACK_OUTPUTS}" | jq -r '.[] | "| \(.OutputKey) | \(.OutputValue) |"' >> $GITHUB_STEP_SUMMARY
+        fi
