@@ -1,6 +1,19 @@
 # CloudFormation Deploy Stack Action
 
-![Built with Claude](https://img.shields.io/badge/Built%20with-Claude-ff9800??style=flat)&nbsp;![Release](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/actions/workflows/release.yaml/badge.svg)&nbsp;![Commit Activity](https://img.shields.io/github/commit-activity/t/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;![Last Commit](https://img.shields.io/github/last-commit/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;![Release Date](https://img.shields.io/github/release-date/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;![Repo Size](https://img.shields.io/github/repo-size/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;![File Count](https://img.shields.io/github/directory-file-count/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;![Issues](https://img.shields.io/github/issues/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;![CloudFormation](https://img.shields.io/badge/IaC-CloudFormation-orange?style=flat)&nbsp;![Top Language](https://img.shields.io/github/languages/top/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;![Custom Endpoint](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bsubhamay/6e30aa9191fd99110ba56249fbec700f/raw/cfn-deploy-action.json?)
+<!-- Row 1: Status - Most Important -->
+[![Release](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/actions/workflows/release.yaml/badge.svg)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;[![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;[![Issues](https://img.shields.io/github/issues/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/issues)&nbsp;[![Last Commit](https://img.shields.io/github/last-commit/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/commits)
+
+<!-- Row 2: Code Quality -->
+[![Top Language](https://img.shields.io/github/languages/top/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;[![Commits](https://img.shields.io/github/commit-activity/t/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/commits)
+
+<!-- Row 3: Tech Stack -->
+[![Terraform](https://img.shields.io/badge/Terraform-IaC-blueviolet?logo=terraform&logoColor=white)](https://www.terraform.io/)&nbsp;[![Built with Claude Code](https://img.shields.io/badge/Built_with-Claude_Code-D97757?logo=anthropic&logoColor=white)](https://claude.ai/)
+
+<!-- Row 4: Repository Info -->
+[![Files](https://img.shields.io/github/directory-file-count/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;[![Repo Size](https://img.shields.io/github/repo-size/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;[![Release Date](https://img.shields.io/github/release-date/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/releases)
+
+<!-- Row 5: Custom Metrics -->
+[![Custom Endpoint](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bsubhamay/6e30aa9191fd99110ba56249fbec700f/raw/cfn-deploy-action.json)](https://gist.github.com/bsubhamay/6e30aa9191fd99110ba56249fbec700f)
 
 A GitHub Action for deploying and managing AWS CloudFormation stacks with OIDC authentication.
 
@@ -17,7 +30,7 @@ This GitHub Action provides a reusable composite workflow for deploying AWS Clou
 | Name                | Description                                      | Required | Default                |
 |---------------------|--------------------------------------------------|----------|------------------------|
 | `stack-name`        | Name of the CloudFormation stack                 | Yes      | —                      |
-| `region`            | AWS region                                       | Yes      | —                      |
+| `aws-region`        | AWS region                                       | Yes      | —                      |
 | `template-url`      | URL of the CloudFormation template               | Yes      | —                      |
 | `parameters-file`   | Path to parameters JSON file                     | No       | `infra/parameters.json`|
 | `aws-account-id`    | AWS account ID for OIDC role assumption          | Yes      | —                      |
@@ -80,7 +93,7 @@ jobs:
         uses: subhamay-bhattacharyya-gha/cfn-deploy-action@v1
         with:
           stack-name: my-production-stack
-          region: us-east-1
+          aws-region: us-east-1
           template-url: ${{ needs.upload-to-s3.outputs.template_url }}
           parameters-file: infra/parameters.json
           aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
@@ -95,7 +108,7 @@ jobs:
   uses: subhamay-bhattacharyya-gha/cfn-deploy-action@v1
   with:
     stack-name: my-stack
-    region: us-east-1
+    aws-region: us-east-1
     template-url: ${{ needs.upload-to-s3.outputs.template_url }}
     aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
     oidc-role-name: github-actions-role

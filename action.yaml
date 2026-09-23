@@ -5,7 +5,7 @@ inputs:
   stack-name:
     description: 'Name of the CloudFormation stack'
     required: true
-  region:
+  aws-region:
     description: 'AWS region'
     required: true
   template-url:
@@ -40,7 +40,7 @@ runs:
       uses: aws-actions/configure-aws-credentials@v6.3.0
       with:
         role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ inputs.oidc-role-name }}
-        aws-region: ${{ inputs.region }}
+        aws-region: ${{ inputs.aws-region }}
 
     - name: Deploy CloudFormation stack
       id: deploy
@@ -48,7 +48,7 @@ runs:
       run: |
         TEMPLATE_URL="${{ inputs.template-url }}"
         STACK_NAME="${{ inputs.stack-name }}"
-        REGION="${{ inputs.region }}"
+        REGION="${{ inputs.aws-region }}"
         PARAMETERS_FILE="${{ inputs.parameters-file }}"
 
         echo ""
@@ -101,7 +101,7 @@ runs:
       shell: bash
       run: |
         STACK_NAME="${{ inputs.stack-name }}"
-        REGION="${{ inputs.region }}"
+        REGION="${{ inputs.aws-region }}"
         OPERATION="${{ steps.deploy.outputs.operation }}"
 
         echo "Waiting for stack deployment to complete..."
@@ -135,7 +135,7 @@ runs:
       shell: bash
       run: |
         STACK_NAME="${{ inputs.stack-name }}"
-        REGION="${{ inputs.region }}"
+        REGION="${{ inputs.aws-region }}"
 
         STACK_INFO=$(aws cloudformation describe-stacks --stack-name "${STACK_NAME}" --region "${REGION}" --query 'Stacks[0]' --output json)
         STACK_STATUS=$(echo $STACK_INFO | jq -r '.StackStatus')
@@ -152,7 +152,7 @@ runs:
       shell: bash
       run: |
         STACK_NAME="${{ inputs.stack-name }}"
-        REGION="${{ inputs.region }}"
+        REGION="${{ inputs.aws-region }}"
         STACK_STATUS="${{ steps.stack-info.outputs.stack-status }}"
         STACK_OUTPUTS='${{ steps.stack-info.outputs.stack-outputs }}'
 
