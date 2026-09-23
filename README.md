@@ -17,7 +17,7 @@ This GitHub Action provides a reusable composite workflow for deploying AWS Clou
 | Name                | Description                                      | Required | Default                |
 |---------------------|--------------------------------------------------|----------|------------------------|
 | `stack-name`        | Name of the CloudFormation stack                 | Yes      | —                      |
-| `region`            | AWS region                                       | Yes      | —                      |
+| `aws-region`        | AWS region                                       | Yes      | —                      |
 | `template-url`      | URL of the CloudFormation template               | Yes      | —                      |
 | `parameters-file`   | Path to parameters JSON file                     | No       | `infra/parameters.json`|
 | `aws-account-id`    | AWS account ID for OIDC role assumption          | Yes      | —                      |
@@ -80,7 +80,7 @@ jobs:
         uses: subhamay-bhattacharyya-gha/cfn-deploy-action@v1
         with:
           stack-name: my-production-stack
-          region: us-east-1
+          aws-region: us-east-1
           template-url: ${{ needs.upload-to-s3.outputs.template_url }}
           parameters-file: infra/parameters.json
           aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
@@ -95,7 +95,7 @@ jobs:
   uses: subhamay-bhattacharyya-gha/cfn-deploy-action@v1
   with:
     stack-name: my-stack
-    region: us-east-1
+    aws-region: us-east-1
     template-url: ${{ needs.upload-to-s3.outputs.template_url }}
     aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
     oidc-role-name: github-actions-role
