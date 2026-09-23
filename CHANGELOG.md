@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/compare/v1.0.0...v1.0.1) (2026-09-23)
+
+
+### Bug Fixes
+
+* rename 'region' input to 'aws-region' for consistency ([b4eeee5](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/commit/b4eeee54cb464065c5dc00acb896bd806b6207e1))
+* update project references and descriptions in configuration files ([b108a2c](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/commit/b108a2cfab4c122918a5ecbb74411c7004bf5f02))
+* update README.md to improve badge organization and clarity ([f0d2d1f](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/commit/f0d2d1f7a2d4d696503c623bd88bfc40c5f60784))
+
 ## [1.1.2](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/compare/v1.1.1...v1.1.2) (2025-05-21)
 
 
