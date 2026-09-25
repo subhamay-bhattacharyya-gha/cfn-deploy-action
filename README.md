@@ -63,7 +63,7 @@ on:
 jobs:
   upload-to-s3:
     name: Upload Template to S3
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       template_url: ${{ steps.upload.outputs.template_url }}
     steps:
@@ -79,7 +79,7 @@ jobs:
 
   deploy:
     name: Deploy Stack
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     environment: devl
     needs: upload-to-s3
     permissions:
