@@ -7,7 +7,7 @@
 [![Top Language](https://img.shields.io/github/languages/top/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;[![Commits](https://img.shields.io/github/commit-activity/t/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/commits)
 
 <!-- Row 3: Tech Stack -->
-[![Terraform](https://img.shields.io/badge/Terraform-IaC-blueviolet?logo=terraform&logoColor=white)](https://www.terraform.io/)&nbsp;[![Built with Claude Code](https://img.shields.io/badge/Built_with-Claude_Code-D97757?logo=anthropic&logoColor=white)](https://claude.ai/)
+[![CloudFormation](https://img.shields.io/badge/CloudFormation-IaC-FF9900?logo=amazon&logoColor=white)](https://aws.amazon.com/cloudformation/)&nbsp;[![Built with Claude Code](https://img.shields.io/badge/Built_with-Claude_Code-D97757?logo=anthropic&logoColor=white)](https://claude.ai/)
 
 <!-- Row 4: Repository Info -->
 [![Files](https://img.shields.io/github/directory-file-count/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;[![Repo Size](https://img.shields.io/github/repo-size/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action)&nbsp;[![Release Date](https://img.shields.io/github/release-date/subhamay-bhattacharyya-gha/cfn-deploy-action)](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/releases)
@@ -68,7 +68,7 @@ jobs:
       template_url: ${{ steps.upload.outputs.template_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Upload template to S3
         id: upload
@@ -87,7 +87,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Deploy CloudFormation Stack
         uses: subhamay-bhattacharyya-gha/cfn-deploy-action@v1
