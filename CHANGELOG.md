@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/compare/v1.0.1...v1.1.0) (2026-09-26)
+
+
+### Features
+
+* update CODEOWNERS, add pull request template, and upgrade checkout action version in workflows ([b30eb31](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/commit/b30eb311078a232f5d8b1cbaa2e9d454a1790276))
+* upgrade GitHub runner to ubuntu-26.04 across workflows and update LICENSE formatting ([d2fb4d7](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/commit/d2fb4d7b73b8573f8acd6a990537f91abe8d8951))
+
 ## [1.0.1](https://github.com/subhamay-bhattacharyya-gha/cfn-deploy-action/compare/v1.0.0...v1.0.1) (2026-09-23)
 
 
